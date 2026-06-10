@@ -1,12 +1,12 @@
-import { getDriveClient } from './client';
+import { getDriveClient } from "./client";
 
 export async function uploadFileToDrive(
   fileBuffer: Buffer,
   fileName: string,
   mimeType: string,
-  parentFolderId?: string
+  parentFolderId?: string,
 ) {
-  const drive = getDriveClient();
+  const drive = await getDriveClient();
 
   const folderId = parentFolderId || process.env.GOOGLE_DRIVE_FOLDER_ID;
 
@@ -29,15 +29,15 @@ export async function uploadFileToDrive(
     await drive.permissions.create({
       fileId,
       requestBody: {
-        role: 'reader',
-        type: 'anyone',
+        role: "reader",
+        type: "anyone",
       },
     });
 
     // Get the sharing link
     const result = await drive.files.get({
       fileId,
-      fields: 'webViewLink, webContentLink',
+      fields: "webViewLink, webContentLink",
     });
 
     return {
@@ -47,13 +47,13 @@ export async function uploadFileToDrive(
       webContentLink: result.data.webContentLink,
     };
   } catch (error) {
-    console.error('Error uploading to Google Drive:', error);
+    console.error("Error uploading to Google Drive:", error);
     throw error;
   }
 }
 
 export async function deleteFileFromDrive(fileId: string) {
-  const drive = getDriveClient();
+  const drive = await getDriveClient();
 
   try {
     await drive.files.delete({
@@ -61,7 +61,7 @@ export async function deleteFileFromDrive(fileId: string) {
     });
     return { success: true };
   } catch (error) {
-    console.error('Error deleting from Google Drive:', error);
+    console.error("Error deleting from Google Drive:", error);
     throw error;
   }
 }

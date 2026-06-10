@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     
     // Attempt to sign in with current password to verify it's correct
     const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: user.email,
+      email: user.email || '',
       password: body.currentPassword,
     });
     
