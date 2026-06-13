@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { FaEdit, FaTrash, FaPlus, FaImages } from 'react-icons/fa';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { FaEdit, FaTrash, FaPlus, FaImages } from "react-icons/fa";
 
 interface Photo {
   id: string;
@@ -17,60 +17,123 @@ interface Photo {
 export default function GalleryPage() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<string>('all');
+  const [filter, setFilter] = useState<string>("all");
 
   useEffect(() => {
-    // Mock data - in real app this would come from API
-    const mockPhotos: Photo[] = [
-      {
-        id: '1',
-        title: 'Mountain Landscape',
-        description: 'Beautiful mountain landscape at sunset',
-        category: 'landscape',
-        featured: true,
-        date: '2023-06-10',
-        imageUrl: '/placeholder-landscape.jpg'
-      },
-      {
-        id: '2',
-        title: 'Portrait Session',
-        description: 'Professional portrait session',
-        category: 'portrait',
-        featured: false,
-        date: '2023-06-08',
-        imageUrl: '/placeholder-portrait.jpg'
-      },
-      {
-        id: '3',
-        title: 'Wedding Ceremony',
-        description: 'Candid wedding ceremony moment',
-        category: 'wedding',
-        featured: true,
-        date: '2023-06-05',
-        imageUrl: '/placeholder-wedding.jpg'
-      },
-      {
-        id: '4',
-        title: 'Street Photography',
-        description: 'Urban street photography',
-        category: 'street',
-        featured: false,
-        date: '2023-06-03',
-        imageUrl: '/placeholder-street.jpg'
+    const fetchPhotos = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("/api/gallery?limit=100");
+        if (response.ok) {
+          const data = await response.json();
+          setPhotos(data.data || []);
+        } else {
+          // Fallback to mock data if API fails
+          const mockPhotos: Photo[] = [
+            {
+              id: "1",
+              title: "Mountain Landscape",
+              description: "Beautiful mountain landscape at sunset",
+              category: "landscape",
+              featured: true,
+              date: "2023-06-10",
+              imageUrl: "https://via.placeholder.com/400x300?text=Landscape",
+            },
+            {
+              id: "2",
+              title: "Portrait Session",
+              description: "Professional portrait session",
+              category: "portrait",
+              featured: false,
+              date: "2023-06-08",
+              imageUrl: "https://via.placeholder.com/400x300?text=Portrait",
+            },
+            {
+              id: "3",
+              title: "Wedding Ceremony",
+              description: "Candid wedding ceremony moment",
+              category: "wedding",
+              featured: true,
+              date: "2023-06-05",
+              imageUrl: "https://via.placeholder.com/400x300?text=Wedding",
+            },
+            {
+              id: "4",
+              title: "Street Photography",
+              description: "Urban street photography",
+              category: "street",
+              featured: false,
+              date: "2023-06-03",
+              imageUrl: "https://via.placeholder.com/400x300?text=Street",
+            },
+          ];
+          setPhotos(mockPhotos);
+        }
+      } catch (error) {
+        console.error("Failed to fetch gallery photos:", error);
+        // Fallback to mock data on error
+        const mockPhotos: Photo[] = [
+          {
+            id: "1",
+            title: "Mountain Landscape",
+            description: "Beautiful mountain landscape at sunset",
+            category: "landscape",
+            featured: true,
+            date: "2023-06-10",
+            imageUrl: "https://via.placeholder.com/400x300?text=Landscape",
+          },
+          {
+            id: "2",
+            title: "Portrait Session",
+            description: "Professional portrait session",
+            category: "portrait",
+            featured: false,
+            date: "2023-06-08",
+            imageUrl: "https://via.placeholder.com/400x300?text=Portrait",
+          },
+          {
+            id: "3",
+            title: "Wedding Ceremony",
+            description: "Candid wedding ceremony moment",
+            category: "wedding",
+            featured: true,
+            date: "2023-06-05",
+            imageUrl: "https://via.placeholder.com/400x300?text=Wedding",
+          },
+          {
+            id: "4",
+            title: "Street Photography",
+            description: "Urban street photography",
+            category: "street",
+            featured: false,
+            date: "2023-06-03",
+            imageUrl: "https://via.placeholder.com/400x300?text=Street",
+          },
+        ];
+        setPhotos(mockPhotos);
+      } finally {
+        setLoading(false);
       }
-    ];
-    
-    setPhotos(mockPhotos);
-    setLoading(false);
+    };
+
+    fetchPhotos();
   }, []);
 
-  const filteredPhotos = filter === 'all' 
-    ? photos 
-    : filter === 'featured' 
-      ? photos.filter(photo => photo.featured) 
-      : photos.filter(photo => photo.category === filter);
+  const filteredPhotos =
+    filter === "all"
+      ? photos
+      : filter === "featured"
+        ? photos.filter((photo) => photo.featured)
+        : photos.filter((photo) => photo.category === filter);
 
-  const categories = ['all', 'landscape', 'portrait', 'wedding', 'street', 'featured'];
+  const categories = [
+    "all",
+    "landscape",
+    "portrait",
+    "wedding",
+    "street",
+    "featured",
+  ];
 
   return (
     <div>
@@ -82,7 +145,7 @@ export default function GalleryPage() {
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
-          <Link 
+          <Link
             href="/dashboard/gallery/upload"
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
@@ -96,7 +159,9 @@ export default function GalleryPage() {
         <div className="border-b border-gray-200">
           <div className="flex flex-wrap items-center justify-between px-6 py-3 bg-gray-50">
             <div className="flex items-center mb-2 sm:mb-0">
-              <span className="text-sm font-medium text-gray-700 mr-2">Filter by category:</span>
+              <span className="text-sm font-medium text-gray-700 mr-2">
+                Filter by category:
+              </span>
               <select
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
@@ -121,21 +186,30 @@ export default function GalleryPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
             {filteredPhotos.length > 0 ? (
               filteredPhotos.map((photo) => (
-                <div key={photo.id} className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
+                <div
+                  key={photo.id}
+                  className="bg-white rounded-lg shadow overflow-hidden border border-gray-200"
+                >
                   <div className="h-48 bg-gray-200 flex items-center justify-center">
                     <FaImages className="h-12 w-12 text-gray-400" />
                   </div>
                   <div className="p-4">
                     <div className="flex justify-between items-start">
-                      <h3 className="text-sm font-medium text-gray-900 truncate">{photo.title}</h3>
+                      <h3 className="text-sm font-medium text-gray-900 truncate">
+                        {photo.title}
+                      </h3>
                       {photo.featured && (
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                           Featured
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-500 mt-1 capitalize">{photo.category}</p>
-                    <p className="text-xs text-gray-500 mt-1">{new Date(photo.date).toLocaleDateString()}</p>
+                    <p className="text-sm text-gray-500 mt-1 capitalize">
+                      {photo.category}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(photo.date).toLocaleDateString()}
+                    </p>
                     <p className="mt-2 text-sm text-gray-700 line-clamp-2">
                       {photo.description}
                     </p>
@@ -154,11 +228,25 @@ export default function GalleryPage() {
               ))
             ) : (
               <div className="col-span-full text-center py-12">
-                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
                 </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No photos</h3>
-                <p className="mt-1 text-sm text-gray-500">Get started by uploading your first photo.</p>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                  No photos
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Get started by uploading your first photo.
+                </p>
                 <div className="mt-6">
                   <Link
                     href="/dashboard/gallery/upload"

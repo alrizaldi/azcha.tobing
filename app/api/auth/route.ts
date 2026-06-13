@@ -2,15 +2,35 @@ import { NextRequest } from 'next/server';
 import { createResponse, createErrorResponse } from '@/lib/api-helpers';
 import { createClient } from '@/lib/supabase/server';
 
+export async function GET(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    
+    if (!session) {
+      return createResponse({ user: null, session: null });
+    }
+    
+    return createResponse({ 
+      user: session.user,
+      session 
+    });
+  } catch (error: any) {
+    return createErrorResponse(error.message || 'Failed to get session', 500);
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const supabase = await createClient();
     
-    // Determine the action based on the URL
-    const url = new URL(request.url);
-    const pathParts = url.pathname.split('/');
-    const action = pathParts[pathParts.length - 1]; // Gets the last part of the path
+    // This endpoint is kept for backward compatibility, but specific routes are preferred
+    // Determine the action based on the body
+    const action = body.action || 'login';
     
     if (action === 'login') {
       if (!body.email || !body.password) {

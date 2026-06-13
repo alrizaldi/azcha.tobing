@@ -13,6 +13,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'cdn.jsdelivr.net', // Example for potential CDN usage
+      },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
       }
     ],
   },

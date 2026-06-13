@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -11,7 +12,64 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
 
+  useEffect(() => {
+    console.log('Dashboard layout mounted, checking authentication...');
+    // Check authentication status on component mount
+    const checkAuth = async () => {
+      try {
+        console.log('Fetching auth session...');
+        const response = await fetch('/api/auth/session');
+        const data = await response.json();
+        console.log('Auth session response:', data);
+        
+        if (!data.data.user) {
+          console.log('No user found in session, setting as unauthenticated');
+          setIsAuthenticated(false);
+          router.push('/login');
+        } else {
+          console.log('User found in session, authenticated');
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        setIsAuthenticated(false);
+        router.push('/login');
+      } finally {
+        setIsLoading(false);
+        console.log('Finished auth check, loading set to false');
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    console.log('Dashboard layout showing loading state');
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  // If not authenticated, show a simple message (the middleware should handle the redirect)
+  if (!isAuthenticated) {
+    console.log('Dashboard layout showing access denied message');
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-gray-900">Access Denied</h2>
+          <p className="mt-2 text-gray-600">Please log in to access the dashboard.</p>
+        </div>
+      </div>
+    );
+  }
+
+  console.log('Dashboard layout rendering normally');
   const navigation = [
     { name: 'Dashboard', href: '/dashboard' },
     { name: 'Projects', href: '/dashboard/projects' },
@@ -44,7 +102,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         pathname === item.href
                           ? 'bg-blue-100 text-blue-900'
                           : 'text-gray-700 hover:bg-gray-50'
-                      } group flex items-center px-2 py-2 text-base leading-5 font-medium rounded-md transition-colors`}
+                      } group flex items-center px-2 py-2 text-base leading-5 font-medium rounded-md transition-colors`
                       onClick={() => setSidebarOpen(false)}
                     >
                       {item.name}

@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FaEye, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
+import { FaEye, FaEdit, FaTrash, FaPlus, FaSync } from 'react-icons/fa';
 
 interface Project {
   id: string;
   title: string;
-  clientName: string;
+  client_name: string;
   status: 'planning' | 'in-progress' | 'completed' | 'on-hold';
-  startDate: string;
-  endDate: string;
+  start_date: string;
+  end_date: string;
   description: string;
 }
 
@@ -28,51 +28,58 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Mock data - in real app this would come from API
-    const mockProjects: Project[] = [
-      {
-        id: '1',
-        title: 'Summer Wedding Photoshoot',
-        clientName: 'Johnson Wedding',
-        status: 'completed',
-        startDate: '2023-06-01',
-        endDate: '2023-06-02',
-        description: 'Full day wedding coverage for the Johnson family'
-      },
-      {
-        id: '2',
-        title: 'Corporate Event',
-        clientName: 'Tech Innovations Inc.',
-        status: 'in-progress',
-        startDate: '2023-06-15',
-        endDate: '2023-06-16',
-        description: 'Annual conference photography'
-      },
-      {
-        id: '3',
-        title: 'Portrait Session',
-        clientName: 'Smith Family',
-        status: 'planning',
-        startDate: '2023-07-10',
-        endDate: '2023-07-10',
-        description: 'Family portrait session'
-      },
-      {
-        id: '4',
-        title: 'Product Photography',
-        clientName: 'ABC Company',
-        status: 'on-hold',
-        startDate: '2023-06-20',
-        endDate: '2023-06-22',
-        description: 'E-commerce product shots'
-      }
-    ];
-    
-    setProjects(mockProjects);
-    setLoading(false);
+    fetchProjects();
   }, []);
+
+  const fetchProjects = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/projects');
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch projects: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setProjects(result.data || []);
+      } else {
+        throw new Error(result.error || 'Unknown error occurred');
+      }
+    } catch (err: any) {
+      console.error('Error fetching projects:', err);
+      setError(err.message || 'Failed to load projects');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (projectId: string) => {
+    if (!window.confirm('Are you sure you want to delete this project?')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const errorResult = await response.json();
+        throw new Error(errorResult.error || 'Failed to delete project');
+      }
+      
+      // Remove the deleted project from the UI
+      setProjects(prev => prev.filter(project => project.id !== projectId));
+    } catch (err: any) {
+      console.error('Error deleting project:', err);
+      alert(err.message || 'Failed to delete project');
+    }
+  };
 
   const filteredProjects = filter === 'all' 
     ? projects 
@@ -115,8 +122,21 @@ export default function ProjectsPage() {
                 <option value="on-hold">On Hold</option>
               </select>
             </div>
+            <button 
+              onClick={fetchProjects}
+              className="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <FaSync className="mr-1 h-4 w-4" />
+              Refresh
+            </button>
           </div>
         </div>
+
+        {error && (
+          <div className="px-6 py-4 bg-red-50 text-red-700">
+            Error: {error}. Please check your connection and authentication.
+          </div>
+        )}
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
@@ -137,9 +157,9 @@ export default function ProjectsPage() {
                       </span>
                     </div>
                     <div className="mt-1 flex items-center text-sm text-gray-500">
-                      <span>Client: {project.clientName}</span>
+                      <span>Client: {project.client_name}</span>
                       <span className="mx-2">•</span>
-                      <span>{new Date(project.startDate).toLocaleDateString()} - {new Date(project.endDate).toLocaleDateString()}</span>
+                      <span>{new Date(project.start_date).toLocaleDateString()} - {new Date(project.end_date).toLocaleDateString()}</span>
                     </div>
                     <p className="mt-2 text-sm text-gray-700 line-clamp-2">
                       {project.description}
@@ -160,6 +180,7 @@ export default function ProjectsPage() {
                         Edit
                       </Link>
                       <button
+                        onClick={() => handleDelete(project.id)}
                         className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                       >
                         <FaTrash className="-ml-0.5 mr-1 h-4 w-4" />
